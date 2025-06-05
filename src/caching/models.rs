@@ -5,6 +5,7 @@ use serde::Serialize;
 pub struct Entry{
     pub key: String,
     pub value: String,
+    pub ttl: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize)]

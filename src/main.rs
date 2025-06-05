@@ -1,17 +1,19 @@
-mod api;
-mod storage;
+mod caching;
+mod app;
 
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::{Duration};
 use actix_web::{App, HttpServer, web};
-use crate::api::handlers::{erase, insert, ping, retrieve, retrieve_all};
-use crate::api::removal::periodic_removal;
-use crate::storage::in_mem_hashmap;
+use app::handlers::{erase, insert, ping, retrieve, retrieve_all};
+use crate::caching::removal::periodic_removal;
+use crate::app::state;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let shared_app_state = Arc::new(in_mem_hashmap::AppState::get_app_state());
+    // Create app state to be used by each thread of actix and also by keys eliminator
+    let shared_app_state = Arc::new(state::AppState::get_app_state());
 
+    // Periodically clean expired keys
     let shared_app_state_clone = Arc::clone(&shared_app_state);
     tokio::spawn( async move {
         let interval = Duration::from_secs(20);
@@ -20,7 +22,8 @@ async fn main() -> std::io::Result<()> {
             periodic_removal(shared_app_state_clone.clone())
         }
     });
-    
+
+    // Start the server
     HttpServer::new(move || {
         App::new()
             .service(

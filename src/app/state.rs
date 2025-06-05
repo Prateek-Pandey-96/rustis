@@ -1,10 +1,9 @@
 use std::time::Instant;
-use actix_web::App;
 use dashmap::DashMap;
 
 pub struct CacheValue {
     pub value: String,
-    pub expiry: Instant,
+    pub expiry: Option<Instant>,
 }
 
 pub struct AppState{

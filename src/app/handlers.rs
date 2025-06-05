@@ -1,14 +1,14 @@
 use actix_web::{web, HttpResponse, Responder};
-use crate::api::cache::Cache;
-use crate::api::models::{Entry, Query};
-use crate::storage::in_mem_hashmap::AppState;
+use crate::caching::cache::Cache;
+use crate::caching::models::{Entry, Query};
+use super::state::AppState;
 
 pub async fn ping() -> impl Responder {
     "pong"
 }
 
 pub async fn insert(data: web::Json<Entry>, app_data: web::Data<AppState>) -> impl Responder {
-    Cache::put(&data.key, &data.value, &app_data.hash_map);
+    Cache::put(&data.key, &data.value, data.ttl, &app_data.hash_map);
     HttpResponse::Ok().body("Inserted!")
 }
 
